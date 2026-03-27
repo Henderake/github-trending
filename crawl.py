@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import html as html_utils
 import re
 import time
 import urllib.parse
@@ -52,6 +53,64 @@ class Repo:
     stars_period: int
 
 
+def normalize_description(text: str) -> str:
+    """Normalize and filter low-signal fallback description text."""
+    cleaned = " ".join(text.split()).strip()
+    if not cleaned:
+        return ""
+    lowered = cleaned.lower()
+    if lowered.startswith("contribute to ") and " by creating an account on github" in lowered:
+        return ""
+    if lowered.startswith("github is where"):
+        return ""
+    return cleaned
+
+
+def fetch_repo_description(url: str, session: requests.Session, cache: Dict[str, str]) -> str:
+    """Fetch description from the repository page metadata as a fallback."""
+    cached = cache.get(url)
+    if cached is not None:
+        return cached
+
+    description = ""
+    try:
+        response = session.get(url, headers=HEADERS, timeout=30)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for selector in (
+            "meta[property='og:description']",
+            "meta[name='description']",
+            "p.f4.my-3",
+        ):
+            tag = soup.select_one(selector)
+            if not tag:
+                continue
+            text = tag.get("content", "").strip() if tag.name == "meta" else tag.get_text(" ", strip=True)
+            description = normalize_description(text)
+            if description:
+                break
+    except requests.RequestException:
+        description = ""
+
+    cache[url] = description
+    return description
+
+
+def extract_article_description(article) -> str:
+    """Extract repository description from a trending card."""
+    desc_tag = (
+        article.select_one("p.col-9.color-fg-muted.my-1.pr-4")
+        or article.select_one("p.col-9.color-fg-muted.my-1.tmp-pr-4")
+        or article.select_one("p.col-9.color-fg-muted.my-1")
+        or article.select_one("p.color-fg-muted.my-1")
+        or article.select_one("p.my-1")
+    )
+    if not desc_tag:
+        desc_tag = next((p for p in article.find_all("p") if p.get_text(" ", strip=True)), None)
+    return normalize_description(desc_tag.get_text(" ", strip=True) if desc_tag else "")
+
+
 def parse_count(raw: str) -> int:
     """Convert GitHub-style number strings (e.g. 1.2k, 900) to integers."""
     if not raw:
@@ -68,7 +127,13 @@ def parse_count(raw: str) -> int:
     return int(number)
 
 
-def fetch_trending(language: str, since: str, session: requests.Session, limit: Optional[int]) -> List[Repo]:
+def fetch_trending(
+    language: str,
+    since: str,
+    session: requests.Session,
+    limit: Optional[int],
+    description_cache: Dict[str, str],
+) -> List[Repo]:
     params = {"since": since}
     if language != "Any":
         params["l"] = language
@@ -84,17 +149,9 @@ def fetch_trending(language: str, since: str, session: requests.Session, limit: 
         repo_name = repo_path.lstrip("/")
         url = urllib.parse.urljoin("https://github.com", repo_path)
 
-        # GitHub regularly changes the exact class list/order on description paragraphs.
-        # Prefer resilient CSS selectors and fall back to the first non-empty <p>.
-        desc_tag = (
-            article.select_one("p.col-9.color-fg-muted.my-1.pr-4")
-            or article.select_one("p.col-9.color-fg-muted.my-1")
-            or article.select_one("p.color-fg-muted.my-1")
-            or article.select_one("p.my-1")
-        )
-        if not desc_tag:
-            desc_tag = next((p for p in article.find_all("p") if p.get_text(" ", strip=True)), None)
-        description = desc_tag.get_text(" ", strip=True) if desc_tag else ""
+        description = extract_article_description(article)
+        if not description:
+            description = fetch_repo_description(url, session, description_cache)
 
         language_tag = article.find("span", itemprop="programmingLanguage")
         repo_language = language_tag.get_text(strip=True) if language_tag else None
@@ -134,18 +191,21 @@ def render_report(results: Dict[str, Dict[str, List[Repo]]], generated_at: dt.da
         return re.sub(r"[^a-z0-9-]", "", raw)
 
     def render_repo(repo: Repo) -> str:
+        safe_url = html_utils.escape(repo.url, quote=True)
+        safe_name = html_utils.escape(repo.name)
         meta_parts = [
             f"⭐ {repo.stars}",
             f"🍴 {repo.forks}",
             f"⬆ {repo.stars_period} this period",
         ]
         if repo.language:
-            meta_parts.append(repo.language)
+            meta_parts.append(html_utils.escape(repo.language))
 
-        description_html = f"<div class='description'>{repo.description}</div>" if repo.description else ""
+        description_text = repo.description or "No description provided."
+        description_html = f"<div class='description'>{html_utils.escape(description_text)}</div>"
         return (
             "<li>"
-            f"<a href='{repo.url}'>{repo.name}</a>"
+            f"<a href='{safe_url}'>{safe_name}</a>"
             f"<div class='meta'>{' • '.join(meta_parts)}</div>"
             f"{description_html}"
             "</li>"
@@ -331,11 +391,12 @@ def render_report(results: Dict[str, Dict[str, List[Repo]]], generated_at: dt.da
 def build_report(output: str, limit: Optional[int], pause: float) -> None:
     session = requests.Session()
     results: Dict[str, Dict[str, List[Repo]]] = {}
+    description_cache: Dict[str, str] = {}
 
     for since, _ in SINCE_OPTIONS:
         results[since] = {}
         for language in LANGUAGES:
-            repos = fetch_trending(language, since, session, limit)
+            repos = fetch_trending(language, since, session, limit, description_cache)
             results[since][language] = repos
             if pause:
                 time.sleep(pause)
