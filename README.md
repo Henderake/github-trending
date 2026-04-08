@@ -23,6 +23,8 @@ The crawler outputs a static site:
 - `report.css`
 - `report.js`
 
+Generated files belong in `dist/` and should not be committed.
+
 ## Local Usage
 
 Create a virtual environment, install dependencies, and generate a report:
@@ -35,6 +37,13 @@ python crawl.py --output dist/index.html
 ```
 
 Generated files will be written to `dist/`.
+
+Quick smoke test:
+
+```bash
+python crawl.py --output dist/index.html --limit 1 --pause 0
+python -m py_compile crawl.py
+```
 
 ## GitHub Pages Deployment
 
@@ -69,6 +78,8 @@ It does not create a daily commit. Instead, GitHub Actions:
 2. Runs `crawl.py`
 3. Uploads the generated `dist/` folder
 4. Deploys it directly to GitHub Pages
+
+The `Generated at` label is stored in UTC and rendered in each visitor's local browser time zone.
 
 ## Notes
 
