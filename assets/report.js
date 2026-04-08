@@ -1,7 +1,26 @@
 const toggleBtn = document.getElementById('sidebar-toggle');
 const sidebar = document.getElementById('sidebar');
+const generatedAt = document.getElementById('generated-at');
 let lockHighlightUntil = 0;
 let lockTimer;
+
+if (generatedAt?.dateTime) {
+  const generatedDate = new Date(generatedAt.dateTime);
+  if (!Number.isNaN(generatedDate.getTime())) {
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZoneName: 'short',
+      hour12: false,
+    });
+    generatedAt.textContent = formatter.format(generatedDate);
+    generatedAt.title = `UTC ${generatedAt.dateTime}`;
+  }
+}
 
 toggleBtn?.addEventListener('click', () => {
   const open = sidebar.classList.toggle('open');

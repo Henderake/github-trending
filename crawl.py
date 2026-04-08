@@ -233,10 +233,12 @@ def render_report(
             "</li>"
         )
 
-    generated_str = generated_at.strftime("%Y-%m-%d %H:%M:%S %Z").strip()
-    sidebar_links = []
+    generated_utc = generated_at.astimezone(dt.timezone.utc)
+    generated_str = generated_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+    generated_iso = generated_utc.replace(microsecond=0).isoformat().replace("+00:00", "Z")
     safe_stylesheet_href = html_utils.escape(stylesheet_href, quote=True)
     safe_script_src = html_utils.escape(script_src, quote=True)
+    safe_generated_iso = html_utils.escape(generated_iso, quote=True)
     html_parts = [
         "<!doctype html>",
         "<html lang='en'>",
@@ -248,7 +250,9 @@ def render_report(
         "</head>",
         "<body>",
         "<h1>GitHub Trending Report</h1>",
-        f"<div class='generated'>Generated at {generated_str}</div>",
+        "<div class='generated'>Generated at "
+        f"<time id='generated-at' datetime='{safe_generated_iso}'>{generated_str}</time>"
+        "</div>",
         "<button id='sidebar-toggle' class='toggle-btn' aria-expanded='false'>☰ Categories</button>",
         "<div class='layout'>",
         "<aside class='sidebar' id='sidebar'>",
@@ -265,7 +269,6 @@ def render_report(
             display_language = "All languages" if language == "Any" else language
             section_id = anchor_id(since, language)
             html_parts.append(f"<li><a href='#{section_id}' data-target='{section_id}' data-group='{group_id}'>{display_language}</a></li>")
-            sidebar_links.append((label, display_language, section_id, group_id))
         html_parts.append("</ul>")
         html_parts.append("</li>")
 
@@ -320,7 +323,7 @@ def build_report(output: str, limit: Optional[int], pause: float) -> None:
                 time.sleep(pause)
 
     copy_report_assets(output_path)
-    html = render_report(results, dt.datetime.now())
+    html = render_report(results, dt.datetime.now(dt.timezone.utc))
     with output_path.open("w", encoding="utf-8") as fp:
         fp.write(html)
 
