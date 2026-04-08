@@ -1,0 +1,14 @@
+.codex
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+venv/
+.venv/
+
+dist/
+/trending-report.html
+/report.css
+/report.js

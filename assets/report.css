@@ -1,0 +1,38 @@
+html { scroll-behavior: smooth; }
+body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; margin: 0 auto; max-width: 1280px; padding: 24px; background: #0b1726; color: #e2e8f0; position: relative; overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(110% 130% at 18% 18%, rgba(0,194,255,0.1), transparent 42%), linear-gradient(160deg, rgba(11,28,44,0.98) 0%, rgba(15,39,58,0.96) 45%, rgba(11,23,38,0.94) 100%); z-index: -1; }
+h1 { margin-bottom: 0; letter-spacing: 0.02em; color: #f8fafc; }
+h2 { margin-top: 32px; border-bottom: 2px solid #102a44; padding-bottom: 6px; color: #c2e6ff; text-shadow: 0 0 12px rgba(0,194,255,0.25); }
+.generated { color: #94a3b8; margin-bottom: 16px; }
+.lang-section { margin-bottom: 20px; padding: 12px; border: 1px solid #112233; border-radius: 10px; background: linear-gradient(135deg, rgba(16,42,68,0.95), rgba(12,26,44,0.9)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 12px 30px rgba(0,0,0,0.35); }
+.lang-title { font-weight: 700; margin: 12px 0 6px; color: #cbd5e1; letter-spacing: 0.01em; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { background: rgba(17,34,51,0.55); border: 1px solid #1b2f47; border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.35); }
+li a { font-weight: 700; color: #75d7ff; text-decoration: none; text-shadow: 0 0 10px rgba(0,194,255,0.2); }
+li a:hover { color: #a8e7ff; }
+.meta { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+.description { margin-top: 6px; color: #cbd5e1; }
+.empty { color: #718096; font-style: italic; }
+.layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
+.sidebar { position: sticky; top: 16px; border-radius: 12px; padding: 14px; background: linear-gradient(180deg, #0f1d2d 0%, #0b1726 100%); box-shadow: 0 18px 40px rgba(0,0,0,0.45), inset 0 0 0 1px #15263a; border: 1px solid #0a1929; max-height: calc(100vh - 32px); overflow-y: auto; }
+.sidebar-title { font-weight: 800; margin-bottom: 12px; letter-spacing: 0.08em; text-transform: uppercase; font-size: 12px; color: #8ab7d8; display: flex; align-items: center; gap: 8px; }
+.sidebar-title::before { content: '●'; color: #00c2ff; text-shadow: 0 0 12px #00c2ff; }
+.sidebar ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.group { display: grid; gap: 6px; }
+.group-toggle { width: 100%; background: linear-gradient(90deg, rgba(13,32,50,0.95), rgba(18,46,72,0.9)); border: 1px solid #1b3048; color: #e2e8f0; padding: 10px 12px; border-radius: 10px; text-align: left; font-weight: 800; letter-spacing: 0.04em; cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); transition: border-color 140ms ease, color 140ms ease, transform 120ms ease; }
+.group-toggle:hover { border-color: #1f3a55; transform: translateX(2px); }
+.group-toggle .caret { color: #00c2ff; text-shadow: 0 0 10px rgba(0,194,255,0.3); }
+.submenu { list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 6px; max-height: 800px; overflow: hidden; transition: max-height 180ms ease; }
+.submenu.closed { max-height: 0; }
+.sidebar a { color: #cbd5e1; text-decoration: none; font-size: 14px; display: block; padding: 10px 12px; border-radius: 10px; border: 1px solid #142437; background: linear-gradient(90deg, rgba(13,32,50,0.9), rgba(12,26,44,0.85)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, color 140ms ease; }
+.sidebar a:hover { transform: translateX(2px); border-color: #1f3a55; color: #e8f4ff; box-shadow: 0 8px 20px rgba(0,194,255,0.15); }
+.sidebar a.active { border-color: #00c2ff; box-shadow: 0 12px 28px rgba(0,194,255,0.25), inset 0 0 0 1px rgba(0,194,255,0.25); color: #f8fbff; background: linear-gradient(90deg, rgba(0,194,255,0.25), rgba(10,102,194,0.35)); }
+.toggle-btn { display: none; margin: 12px 0; padding: 11px 16px; border-radius: 10px; border: 1px solid #102a44; background: linear-gradient(135deg, #12345a, #0d2a46); color: #e2e8f0; font-weight: 700; cursor: pointer; box-shadow: 0 10px 24px rgba(0,0,0,0.35); }
+.toggle-btn:active { transform: translateY(1px); }
+.content { backdrop-filter: blur(4px); }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; position: static; max-height: 70vh; }
+  .sidebar.open { display: block; }
+  .toggle-btn { display: inline-flex; align-items: center; gap: 8px; }
+}
