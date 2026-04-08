@@ -45,6 +45,8 @@ python -m py_compile crawl.py
 - 常數使用 `UPPER_SNAKE_CASE`。
 - 優先延續現有的簡單函式拆分，不引入不必要抽象。
 - CSS / JS 維持原生靜態檔，不為小改動加入框架或打包工具。
+- 文件預設使用通順的台灣繁體中文；GitHub、Python、GitHub Pages 等專有名詞可保留英文。
+- 不要在任何文件中寫入本機絕對路徑，文件內一律使用相對路徑或純文字檔名。
 
 目前沒有 formatter 或 linter 設定；提交前至少確保語法可編譯、輸出可生成。
 
