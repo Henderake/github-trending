@@ -3,8 +3,9 @@ name: Deploy GitHub Pages
 on:
   schedule:
     # GitHub Actions cron uses UTC.
-    # Run after the UTC date boundary and avoid top-of-hour contention.
-    - cron: "17 2 * * *"
+    # 18:00 America/Los_Angeles (PDT, UTC-7) = 01:00 UTC.
+    # Note: during PST (winter, UTC-8) this fires at 17:00 SF time.
+    - cron: "0 1 * * *"
   workflow_dispatch:
 
 permissions:
